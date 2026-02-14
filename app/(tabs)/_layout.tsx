@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Activity } from 'lucide-react-native';
+import { Activity, CircleDollarSign, Settings } from 'lucide-react-native';
 import React from 'react';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -24,6 +24,20 @@ export default function TabLayout() {
         options={{
           title: 'Dashboard',
           tabBarIcon: ({ color }) => <Activity size={28} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="rewards"
+        options={{
+          title: 'Rewards',
+          tabBarIcon: ({ color }) => <CircleDollarSign size={28} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Config',
+          tabBarIcon: ({ color }) => <Settings size={28} color={color} />,
         }}
       />
       <Tabs.Screen

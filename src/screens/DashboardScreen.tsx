@@ -1,17 +1,15 @@
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect } from 'expo-router';
-import { Activity, CircleDollarSign, Clock, Power } from 'lucide-react-native';
+import { Activity, AlertTriangle, CircleDollarSign, Clock, Power } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, RefreshControl, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { Alert, Modal, RefreshControl, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
 import CyberLung from '@/src/components/CyberLung';
+import PanicModal from '@/src/components/PanicModal';
 import { Text, View } from '@/src/components/Themed';
 import { CyberpunkTheme } from '@/src/constants/Colors';
 import Layout from '@/src/constants/Layout';
-import { Storage } from '@/src/utils/storage';
-
-const CIGS_PER_DAY = 10;
-const COST_PER_PACK = 15; // $15 per pack of 20
-const COST_PER_CIG = COST_PER_PACK / 20;
+import { Storage, UserSettings } from '@/src/utils/storage';
 
 export default function DashboardScreen() {
     const [quitDate, setQuitDate] = useState<number | null>(null);
@@ -20,11 +18,24 @@ export default function DashboardScreen() {
     const [cigsAvoided, setCigsAvoided] = useState<number>(0);
     const [refreshing, setRefreshing] = useState(false);
 
+    // Settings
+    const [settings, setSettings] = useState<UserSettings>({ cigsPerDay: 10, costPerPack: 15 });
+
+    // Onboarding Modal
+    const [showOnboarding, setShowOnboarding] = useState(false);
+    const [tempDate, setTempDate] = useState(new Date());
+
+    // Panic Modal
+    const [showPanicModal, setShowPanicModal] = useState(false);
+
     const loadData = useCallback(async () => {
         const date = await Storage.getQuitDate();
         setQuitDate(date);
 
-        // In a real app, we'd load financials here too
+        const loadedSettings = await Storage.getSettings();
+        if (loadedSettings) {
+            setSettings(loadedSettings);
+        }
     }, []);
 
     useFocusEffect(
@@ -46,27 +57,34 @@ export default function DashboardScreen() {
 
             // Calculate derived stats
             const days = diff / (1000 * 60 * 60 * 24);
-            setMoneySaved(days * CIGS_PER_DAY * COST_PER_CIG);
-            setCigsAvoided(Math.floor(days * CIGS_PER_DAY));
+            const costPerCig = settings.costPerPack / 20;
+            setMoneySaved(days * settings.cigsPerDay * costPerCig);
+            setCigsAvoided(Math.floor(days * settings.cigsPerDay));
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [quitDate]);
+    }, [quitDate, settings.cigsPerDay, settings.costPerPack]);
 
-    const handleStartQuit = async () => {
-        const now = Date.now();
-        await Storage.saveQuitDate(now);
-        setQuitDate(now);
+    const handleStartQuit = () => {
+        setShowOnboarding(true);
+        setTempDate(new Date());
+    };
+
+    const confirmStartQuit = async () => {
+        const timestamp = tempDate.getTime();
+        await Storage.saveQuitDate(timestamp);
+        setQuitDate(timestamp);
+        setShowOnboarding(false);
     };
 
     const handleRelapse = async () => {
         Alert.alert(
-            "Reset Timer?",
-            "Relapse is part of recovery. Are you sure you want to reset?",
+            "CRITICAL WARNING",
+            "This action initiates a full system reset. All progress will be lost.\n\nAre you absolutely certain?",
             [
-                { text: "Cancel", style: "cancel" },
+                { text: "ABORT", style: "cancel" },
                 {
-                    text: "Reset",
+                    text: "CONFIRM RESET",
                     style: "destructive",
                     onPress: async () => {
                         await Storage.clearQuitDate();
@@ -161,12 +179,59 @@ export default function DashboardScreen() {
                     </View>
                 )}
 
+                {/* Panic Button */}
+                <TouchableOpacity style={styles.panicButton} onPress={() => setShowPanicModal(true)}>
+                    <AlertTriangle size={32} color={CyberpunkTheme.background} />
+                    <Text style={styles.panicButtonText}>PANIC BUTTON</Text>
+                </TouchableOpacity>
+
                 {/* Panic / Reset */}
                 {quitDate && (
-                    <TouchableOpacity style={styles.resetButton} onPress={handleRelapse}>
-                        <Text style={styles.resetText}>RELAPSE DETECTED (RESET)</Text>
+                    <TouchableOpacity style={styles.resetButton} onLongPress={handleRelapse} delayLongPress={2000}>
+                        <AlertTriangle size={20} color={CyberpunkTheme.error} style={{ marginBottom: 5 }} />
+                        <Text style={styles.resetText}>HOLD TO REPORT RELAPSE</Text>
                     </TouchableOpacity>
                 )}
+
+                {/* Onboarding Modal */}
+                <Modal visible={showOnboarding} transparent animationType="slide">
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.modalTitle}>INITIALIZE PROTOCOL</Text>
+                            <Text style={styles.modalSubtitle}>Select your quit date and time:</Text>
+
+                            <View style={styles.datePickerContainer}>
+                                <DateTimePicker
+                                    value={tempDate}
+                                    mode="date"
+                                    display="spinner"
+                                    onChange={(_event: any, date?: Date) => date && setTempDate(date)}
+                                    textColor={CyberpunkTheme.text}
+                                    themeVariant="dark"
+                                />
+                                <DateTimePicker
+                                    value={tempDate}
+                                    mode="time"
+                                    display="spinner"
+                                    onChange={(_event: any, date?: Date) => date && setTempDate(date)}
+                                    textColor={CyberpunkTheme.text}
+                                    themeVariant="dark"
+                                />
+                            </View>
+
+                            <View style={styles.modalButtons}>
+                                <TouchableOpacity style={styles.modalButtonCancel} onPress={() => setShowOnboarding(false)}>
+                                    <Text style={styles.modalButtonText}>CANCEL</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.modalButtonConfirm} onPress={confirmStartQuit}>
+                                    <Text style={[styles.modalButtonText, { color: CyberpunkTheme.background }]}>ENGAGE</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
+
+                <PanicModal visible={showPanicModal} onClose={() => setShowPanicModal(false)} />
 
             </View>
         </ScrollView>
@@ -275,15 +340,101 @@ const styles = StyleSheet.create({
         color: CyberpunkTheme.textDim,
         letterSpacing: 1,
     },
+    panicButton: {
+        backgroundColor: CyberpunkTheme.error,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 20,
+        borderRadius: 10,
+        marginBottom: 30,
+        shadowColor: CyberpunkTheme.error,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.6,
+        shadowRadius: 15,
+        elevation: 8,
+    },
+    panicButtonText: {
+        color: CyberpunkTheme.background,
+        fontWeight: 'bold',
+        fontSize: 18,
+        marginLeft: 10,
+        fontFamily: 'Courier',
+        letterSpacing: 2,
+    },
     resetButton: {
         marginTop: 'auto',
         marginBottom: 20,
         alignSelf: 'center',
+        alignItems: 'center',
+        borderColor: CyberpunkTheme.error,
+        borderWidth: 1,
+        padding: 10,
+        borderRadius: 5,
+        backgroundColor: 'rgba(255, 56, 96, 0.1)',
     },
     resetText: {
         color: CyberpunkTheme.error,
         fontSize: 12,
         letterSpacing: 1,
-        textDecorationLine: 'underline',
+        fontWeight: 'bold',
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(5, 5, 17, 0.9)',
+    },
+    modalContent: {
+        width: '90%',
+        backgroundColor: CyberpunkTheme.panel,
+        padding: 20,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: CyberpunkTheme.primary,
+        alignItems: 'center',
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: CyberpunkTheme.primary,
+        marginBottom: 10,
+        fontFamily: 'Courier',
+        letterSpacing: 1,
+    },
+    modalSubtitle: {
+        color: CyberpunkTheme.text,
+        marginBottom: 20,
+    },
+    datePickerContainer: {
+        width: '100%',
+        marginBottom: 20,
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        width: '100%',
+        justifyContent: 'space-between',
+    },
+    modalButtonCancel: {
+        padding: 15,
+        borderRadius: 5,
+        borderWidth: 1,
+        borderColor: CyberpunkTheme.error,
+        width: '45%',
+        alignItems: 'center',
+    },
+    modalButtonConfirm: {
+        padding: 15,
+        borderRadius: 5,
+        backgroundColor: CyberpunkTheme.primary,
+        width: '45%',
+        alignItems: 'center',
+    },
+    modalButtonText: {
+        color: CyberpunkTheme.text,
+        fontWeight: 'bold',
+        fontFamily: 'Courier',
     }
 });

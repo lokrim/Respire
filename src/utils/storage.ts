@@ -6,6 +6,7 @@ const KEYS = {
     CIGS_PER_DAY: '@respire_cigs_per_day',
     COST_PER_PACK: '@respire_cost_per_pack',
     LOGS: '@respire_logs',
+    BOUNTIES: '@respire_bounties',
 };
 
 export interface LogEntry {
@@ -13,6 +14,19 @@ export interface LogEntry {
     timestamp: number;
     trigger: string;
     type: 'panic' | 'relapse';
+}
+
+export interface Bounty {
+    id: string;
+    title: string;
+    cost: number;
+    redeemed: boolean;
+    dateAdded: number;
+}
+
+export interface UserSettings {
+    cigsPerDay: number;
+    costPerPack: number;
 }
 
 export const Storage = {
@@ -42,27 +56,30 @@ export const Storage = {
         }
     },
 
-    async saveFinancials(cigsPerDay: number, costPerPack: number) {
+    async saveSettings(settings: UserSettings) {
         try {
             await AsyncStorage.multiSet([
-                [KEYS.CIGS_PER_DAY, cigsPerDay.toString()],
-                [KEYS.COST_PER_PACK, costPerPack.toString()],
+                [KEYS.CIGS_PER_DAY, settings.cigsPerDay.toString()],
+                [KEYS.COST_PER_PACK, settings.costPerPack.toString()],
             ]);
         } catch (e) {
-            console.error('Failed to save financials', e);
+            console.error('Failed to save settings', e);
         }
     },
 
-    async getFinancials() {
+    async getSettings(): Promise<UserSettings | null> {
         try {
             const values = await AsyncStorage.multiGet([KEYS.CIGS_PER_DAY, KEYS.COST_PER_PACK]);
+            const cigsPerDay = values[0][1] ? parseFloat(values[0][1]) : 10; // Default 10
+            const costPerPack = values[1][1] ? parseFloat(values[1][1]) : 15; // Default 15
+
             return {
-                cigsPerDay: values[0][1] ? parseFloat(values[0][1]) : null,
-                costPerPack: values[1][1] ? parseFloat(values[1][1]) : null,
+                cigsPerDay,
+                costPerPack
             };
         } catch (e) {
-            console.error('Failed to get financials', e);
-            return { cigsPerDay: null, costPerPack: null };
+            console.error('Failed to get settings', e);
+            return null;
         }
     },
 
@@ -83,6 +100,34 @@ export const Storage = {
         } catch (e) {
             console.error('Failed to fetch logs', e);
             return [];
+        }
+    },
+
+    async saveBounties(bounties: Bounty[]) {
+        try {
+            await AsyncStorage.setItem(KEYS.BOUNTIES, JSON.stringify(bounties));
+        } catch (e) {
+            console.error('Failed to save bounties', e);
+        }
+    },
+
+    async getBounties(): Promise<Bounty[]> {
+        try {
+            const jsonValue = await AsyncStorage.getItem(KEYS.BOUNTIES);
+            return jsonValue != null ? JSON.parse(jsonValue) : [];
+        } catch (e) {
+            console.error('Failed to fetch bounties', e);
+            return [];
+        }
+    },
+
+    async addBounty(bounty: Bounty) {
+        try {
+            const bounties = await this.getBounties();
+            const newBounties = [...bounties, bounty];
+            await this.saveBounties(newBounties);
+        } catch (e) {
+            console.error('Failed to add bounty', e);
         }
     }
 };
