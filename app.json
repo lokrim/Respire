@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Respire",
-    "slug": "Respire",
+    "slug": "respire",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -41,6 +41,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "6af7cbb1-7f4a-4a03-8ad6-adb64f99e08c"
+      }
+    },
+    "owner": "lokrims-organization"
   }
 }
