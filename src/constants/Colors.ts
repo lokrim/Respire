@@ -16,18 +16,9 @@ export const CyberpunkTheme = {
 
 export default {
     light: {
-        text: '#000',
-        textDim: '#666',
-        background: '#fff',
-        panel: '#f0f0f0',
-        tint: tintColorLight,
+        ...CyberpunkTheme,
         tabIconDefault: '#ccc',
-        tabIconSelected: tintColorLight,
-        border: '#ccc',
-        primary: '#007AFF', // Standard Blue
-        secondary: '#FF2D55', // Pinkish Red
-        accent: '#34C759', // Green
-        error: '#FF3B30', // Red
+        tabIconSelected: tintColorDark,
     },
     dark: {
         ...CyberpunkTheme,

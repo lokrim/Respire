@@ -31,6 +31,10 @@ const MILESTONES: Milestone[] = [
     { id: '13', title: 'Coronary Health', description: 'Heart disease risk cut in half.', durationMs: 365 * 24 * 60 * 60 * 1000, icon: Heart },
 ];
 
+/**
+ * Health Screen
+ * Displays health milestones that unlock as the user stays sober.
+ */
 export default function HealthScreen() {
     const [timeElapsed, setTimeElapsed] = useState(0);
 
@@ -46,14 +50,11 @@ export default function HealthScreen() {
     useFocusEffect(
         useCallback(() => {
             loadData();
-            // Optional: Auto-refresh every minute to check for new unlocks? 
-            // For now, load on focus is sufficient.
         }, [loadData])
     );
 
     const renderMilestone = ({ item, index }: { item: Milestone, index: number }) => {
         const unlocked = timeElapsed >= item.durationMs;
-        // Check if next item is locked to draw appropriate connector line
         const isLast = index === MILESTONES.length - 1;
 
         return (

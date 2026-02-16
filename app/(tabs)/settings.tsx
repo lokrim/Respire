@@ -1,11 +1,15 @@
-import { FileText, Moon, Save, Settings as SettingsIcon, Trash2 } from 'lucide-react-native';
+import { FileText, Save, Settings as SettingsIcon, Trash2 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { Alert, Appearance, FlatList, Modal, ScrollView, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { Alert, FlatList, Modal, ScrollView, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 
 import { Text, View } from '@/src/components/Themed';
 import { CyberpunkTheme } from '@/src/constants/Colors';
 import { LogEntry, Storage, UserSettings } from '@/src/utils/storage';
 
+/**
+ * Settings Screen
+ * Allows users to configure app parameters, view logs, and perform system resets.
+ */
 export default function SettingsScreen() {
     const [cigsPerDay, setCigsPerDay] = useState('');
     const [creditsPerCig, setCreditsPerCig] = useState('');
@@ -69,17 +73,6 @@ export default function SettingsScreen() {
         );
     };
 
-    const toggleTheme = () => {
-        const current = Appearance.getColorScheme();
-        // Since we are using system theme mostly, this might not persist without a context, 
-        // but for now we follow the instruction to "implement it".
-        // In a real app we'd use a ThemeProvider. 
-        // We'll just alert for now as changing system theme programmatically isn't standard in Expo without a config plugin or system intent.
-        // However, we can toggle the 'store' preference if we had one.
-        // For this MVP, let's just toggle the Appearance.setColorScheme if available (dev client) or just alert.
-        Alert.alert("Theme Toggle", "To change theme, please toggle your device system settings to Dark/Light mode. The app respects system preferences.");
-    };
-
     const renderLogItem = ({ item }: { item: LogEntry }) => (
         <View style={styles.logItem}>
             <Text style={styles.logDate}>{new Date(item.timestamp).toLocaleString()}</Text>
@@ -134,11 +127,6 @@ export default function SettingsScreen() {
                 <TouchableOpacity style={styles.utilityButton} onPress={handleViewLogs}>
                     <FileText size={20} color={CyberpunkTheme.text} />
                     <Text style={styles.utilityText}>VIEW SYSTEM LOGS</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.utilityButton} onPress={toggleTheme}>
-                    <Moon size={20} color={CyberpunkTheme.text} />
-                    <Text style={styles.utilityText}>TOGGLE DARK/LIGHT MODE</Text>
                 </TouchableOpacity>
             </View>
 

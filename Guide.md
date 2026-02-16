@@ -1,76 +1,251 @@
-# Respire: Cigarette Sobriety Tracker - Development Guide
+# Respire: The Ultimate React Native & Expo Guide 🚀
 
-## 1. Project Structure & Boilerplate Explanation
+Welcome to the **Respire** development guide. This document is designed to teach you React Native and Expo **from zero**, using the actual code of this project as living examples.
 
-This project is built using **React Native** with **Expo Router**. Expo Router brings a file-system based routing API to React Native, similar to Next.js on the web.
+---
 
-### Key Directories & Files:
+## 📚 Table of Contents
+1. [The Tech Stack: React Native vs. Expo](#1-the-tech-stack-react-native-vs-expo)
+2. [Project Structure Anatomy](#2-project-structure-anatomy)
+3. [React Fundamentals](#3-react-fundamentals)
+4. [The Power of Hooks (Theory & Practice)](#4-the-power-of-hooks-theory--practice)
+5. [Navigation with Expo Router](#5-navigation-with-expo-router)
+6. [Data Persistence (AsyncStorage)](#6-data-persistence-asyncstorage)
+7. [Styling & Theming](#7-styling--theming)
+8. [Animations (Reanimated)](#8-animations-reanimated)
 
-- **`app/`**: This is the most important directory. It contains your routes.
-  - **`_layout.tsx`**: This is the root layout. It wraps every screen in the app. It's where we set up global providers (like ThemeProvider) and the root navigation structure (Stack).
-  - **`(tabs)/`**: A "group" directory. The parenthesis `()` mean this folder is for organization and doesn't affect the URL path. Inside, `_layout.tsx` defines the Tab Bar navigation.
-  - **`index.tsx`**: The default route (`/`).
-  - **`+html.tsx`**: (If present) Configures the HTML root for web builds.
-  - **`modal.tsx`**: Example of a screen presented as a modal.
+---
 
-- **`components/`**: Reusable UI components.
-  - **`Themed.tsx`**: Contains wrappers around `Text` and `View` that automatically adjust colors based on the active theme (light/dark).
+## 1. The Tech Stack: React Native vs. Expo
 
-- **`constants/`**: App-wide constants.
-  - **`Colors.ts`**: Defines the color palette for light and dark modes.
+### What is React Native?
+**React Native** allows you to write mobile apps for iOS and Android using JavaScript and React. Unlike "hybrid" apps that run inside a webview (like a website), React Native renders **real native UI components**.
+- **View** -> `UIView` (iOS) / `android.view.View` (Android)
+- **Text** -> `UITextView` / `TextView`
 
-- **`hooks/`**: Custom React hooks.
-  - **`useColorScheme.ts`**: Helper to detect and toggle the color scheme.
+### What is Expo?
+**Expo** is a framework and platform built *around* React Native. It simplifies the development process by removing the need to touch native code (Swift/Kotlin) for most use cases.
+- **Expo Go**: The app you use to preview your project instantly.
+- **Expo SDK**: A massive library of pre-built modules (Camera, Location, Sensors, Haptics) that work out of the box.
 
-### Detailed Breakdown: `app/_layout.tsx`
+---
 
-This file is the **entry point** for the navigation.
+## 2. Project Structure Anatomy
 
+Understanding where files live is half the battle. Here is the structure of **Respire**:
+
+```text
+/
+├── app/                  # 👈 The "Router". Every file here is a screen/route.
+│   ├── (tabs)/           # A "Group". Files inside are tabs, but "(tabs)" isn't in the URL.
+│   │   ├── _layout.tsx   # Defines the Bottom Tab Bar.
+│   │   ├── index.tsx     # The Dashboard (Home) screen.
+│   │   ├── health.tsx    # Health timeline screen.
+│   │   └── settings.tsx  # Settings screen.
+│   ├── _layout.tsx       # The ROOT layout. Wraps the entire app (Themes, Fonts).
+│   └── +html.tsx         # Web entry point (if we deployed to web).
+├── assets/               # Images, fonts, icons.
+├── src/                  # 👈 The "Brain". Your logic and UI code.
+│   ├── components/       # Reusable UI (Buttons, Cards, CyberLung).
+│   ├── constants/        # App-wide values (Colors, Layouts).
+│   └── utils/            # Helper functions (Storage, Date formatters).
+└── app.json              # Configuration (App name, icon, splash screen).
+```
+
+---
+
+## 3. React Fundamentals
+
+### Components
+React apps are built of **Components**. A component is a JavaScript function that returns some UI.
+
+**Example from `src/components/CyberLung.tsx`:**
 ```tsx
-export default function RootLayout() {
-  const colorScheme = useColorScheme(); // Detects if user is in Dark Mode
+// 1. Import dependencies
+import { View } from 'react-native';
 
+// 2. Define the Component Function
+export default function CyberLung({ daysSober }) {
+  // 3. Keep logic here (like calculating lung status)
+  
+  // 4. Return JSX (The UI)
   return (
-    // Provides the theme to all child components
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      {/* The Stack navigator manages a stack of screens */}
-      <Stack>
-         {/* The (tabs) group is the main screen */}
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        {/* The modal screen is a separate route */}
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <View>
+       {/* ... content ... */}
+    </View>
   );
 }
 ```
 
-## 3. Implemented Features (Cyberpunk Edition)
+### JSX (JavaScript XML)
+JSX looks like HTML, but it's JavaScript.
+- HTML: `<div class="container">Hello</div>`
+- JSX: `<View style={styles.container}><Text>Hello</Text></View>`
 
-### Core Components (`src/`)
+### Props (Properties)
+Props are how we pass data **down** from a parent to a child.
+In `DashboardScreen`, we use `<CyberLung daysSober={5} />`. `daysSober` is a prop.
 
-- **`screens/DashboardScreen.tsx`**: The main command center.
-    - **"Not One Puff" Timer**: Counts days, hours, minutes, seconds since quit date.
-    - **Financials**: Calculates money saved based on $15/pack cost.
-    - **Cyber Lung**: Visual representation of lung health using `react-native-svg` and `lucide-react-native`.
+---
+
+## 4. The Power of Hooks (Theory & Practice)
+
+Hooks allow function components to "hook into" React features like state and lifecycle methods. They always start with `use`.
+
+### 1. `useState` - "The Memory"
+Allows a component to remember values between renders.
+
+**Example from `DashboardScreen.tsx`:**
+```tsx
+// const [variable, setterFunction] = useState(initialValue);
+const [timeElapsed, setTimeElapsed] = useState(0);
+
+// Later...
+setTimeElapsed(1000); // Triggers a re-render with new value.
+```
+**Concept**: When `setTimeElapsed` is called, React re-runs the `DashboardScreen` function, updating the UI with the new number.
+
+### 2. `useEffect` - "The Side Effect"
+Runs code when the component mounts (loads) or when specific variables change.
+
+**Example from `DashboardScreen.tsx`:**
+```tsx
+useEffect(() => {
+    // 1. This code runs when 'quitDate' changes.
+    if (!quitDate) return;
+
+    // Start a timer
+    const interval = setInterval(() => {
+        // ... calculation logic ...
+    }, 1000);
+
+    // 2. Cleanup Function (Runs when component unmounts)
+    return () => clearInterval(interval);
+}, [quitDate]); // 👈 Dependency Array. Rules:
+// [] -> Run once on mount.
+// [quitDate] -> Run every time 'quitDate' changes.
+// No array -> Run on every render (Dangerous!).
+```
+
+### 3. `useCallback` - "The Memorizer"
+ Prevents a function from being re-created on every render. Useful for performance.
+
+**Example from `DashboardScreen.tsx`:**
+```tsx
+const loadData = useCallback(async () => {
+    const date = await Storage.getQuitDate();
+    setQuitDate(date);
+}, []); // 👈 Function is created once and reused.
+```
+
+### 4. `useSharedValue` & `useAnimatedStyle` (Reanimated)
+Special hooks for high-performance animations that run on the UI thread (60fps), separate from the JavaScript thread.
+
+**Example from `CyberLung.tsx`:**
+```tsx
+const pulse = useSharedValue(1); // Like state, but for animations.
+
+// Define how the style changes based on the value
+const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulse.value }],
+}));
+```
+
+---
+
+## 5. Navigation with Expo Router
+
+Expo Router uses the **file system** to define routes.
+
+### The Special Files:
+1.  **`_layout.tsx`**: A "Wrapper" for screens.
+    -   In `app/(tabs)/_layout.tsx`, we define a `<Tabs>` navigator.
+    -   It automatically finds `index.tsx`, `health.tsx`, etc., and makes them tabs because they are in the same folder.
     
-- **`components/CyberLung.tsx`**: 
-    - Animated lung status that evolves from "Critical Failure" (Relapse) to "Optimal Function" (7+ Days).
-    - Uses `react-native-reanimated` for the "pulse" effect.
+2.  **`index.tsx`**: The default route for a folder.
+    -   `app/(tabs)/index.tsx` is the first screen shown in the tabs.
 
-- **`utils/storage.ts`**:
-    - Manage data persistence using `AsyncStorage`.
-    - Keys: `@respire_quit_date`, `@respire_money_saved`.
+### Linking
+To navigate between screens programmatically:
+```tsx
+import { router } from 'expo-router';
 
-- **`constants/Colors.ts`**:
-    - **Cyberpunk Palette**: Neon Cyan (`#00F3FF`), Magenta (`#FF00FF`), Lime (`#00FF9D`), and Deep Black (`#050511`).
+// Go to settings
+router.push('/settings');
 
-### How to Reset
-- If you relapse, tap the "RELAPSE DETECTED" button at the bottom of the dashboard to reset your stats.
+// Go back
+router.back();
+```
 
-### Next Steps (Future Roadmap)
-- [ ] Add "Panic Button" with breathing exercises.
-- [ ] Add "Yakuza Bet" savings goal.
-- [ ] Add more detailed health milestones.
+---
 
+## 6. Data Persistence (AsyncStorage)
+
+Mobile apps lose their state when closed. We use `AsyncStorage` (a simple key-value store) to save data permanently.
+
+**Look at `src/utils/storage.ts`:**
+```tsx
+const KEYS = { QUIT_DATE: '@respire_quit_date' };
+
+export const Storage = {
+    async saveQuitDate(date: number) {
+        // Must convert to string to save
+        await AsyncStorage.setItem(KEYS.QUIT_DATE, date.toString());
+    },
+
+    async getQuitDate() {
+        const value = await AsyncStorage.getItem(KEYS.QUIT_DATE);
+        // Must parse back to number
+        return value ? parseInt(value) : null;
+    }
+}
+```
+**Async/Await**: Storage operations are slow (relatively). We use `async/await` to wait for them to finish without freezing the app.
+
+---
+
+## 7. Styling & Theming
+
+### StyleSheet
+We don't use CSS files. We use JavaScript objects.
+```tsx
+const styles = StyleSheet.create({
+    container: {
+        flex: 1, // Take up all available space
+        backgroundColor: '#000',
+        alignItems: 'center', // Center horizontally
+        justifyContent: 'center', // Center vertically
+    },
+    text: {
+        color: 'white',
+        fontSize: 20
+    }
+});
+```
+
+### Dynamic Theming (`Colors.ts`)
+We defined a `CyberpunkTheme` object in `src/constants/Colors.ts`. We import this everywhere to ensure consistency. If we change the primary color there, it updates everywhere.
+
+---
+
+## 8. Animations (Reanimated)
+
+React Native has a built-in `Animated` API, but **React Native Reanimated** is the industry standard for complex, smooth animations.
+
+**Key Concept: The UI Thread**
+-   **JS Thread**: Runs your React logic. Can get busy (laggy).
+-   **UI Thread**: Draws the screen.
+-   **Reanimated**: Declares animations in JS, but ships them to the UI thread to run smoothly even if the app is busy calculating.
+
+In `CyberLung.tsx`, the breathing animation continues smoothly even if sorting the list of logs takes a few milliseconds, because it's running independently on the UI thread.
+
+---
+
+## Summary
+You have built a robust application using modern patterns:
+-   **Structure**: Domain-driven separation (`app` vs `src`).
+-   **Navigation**: Dynamic file-based routing.
+-   **State**: Hooks for local state, AsyncStorage for persistence.
+-   **UI**: Component-based architecture with dynamic styling.
+
+Keep hacking! 🤖🚬🚫

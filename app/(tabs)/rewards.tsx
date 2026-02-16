@@ -1,5 +1,5 @@
 import { useFocusEffect } from 'expo-router';
-import { Lock, Plus, Trash2, Unlock } from 'lucide-react-native';
+import { Briefcase, Lock, Plus, Trash2, Unlock } from 'lucide-react-native';
 import React, { useCallback, useState } from 'react';
 import { FlatList, Modal, RefreshControl, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 
@@ -7,6 +7,10 @@ import { Text, View } from '@/src/components/Themed';
 import { CyberpunkTheme } from '@/src/constants/Colors';
 import { Bounty, Storage } from '@/src/utils/storage';
 
+/**
+ * Rewards Screen (Yakuza Stash)
+ * Allows users to set custom rewards (bounties) for themselves using credits earned from sobriety.
+ */
 export default function RewardsScreen() {
     const [bounties, setBounties] = useState<Bounty[]>([]);
     const [creditsEarned, setCreditsEarned] = useState(0);
@@ -129,6 +133,7 @@ export default function RewardsScreen() {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
+                <Briefcase size={32} color={CyberpunkTheme.primary} style={{ marginBottom: 10 }} />
                 <Text style={styles.headerText}>YAKUZA STASH</Text>
                 <View style={styles.stashCard}>
                     <Text style={styles.stashLabel}>AVAILABLE CREDITS</Text>
@@ -198,6 +203,7 @@ const styles = StyleSheet.create({
         padding: 20,
         paddingTop: 60,
         backgroundColor: CyberpunkTheme.panel,
+        alignItems: 'center',
         borderBottomWidth: 1,
         borderBottomColor: CyberpunkTheme.primary,
     },
@@ -211,6 +217,7 @@ const styles = StyleSheet.create({
     },
     stashCard: {
         alignItems: 'center',
+        backgroundColor: CyberpunkTheme.panel
     },
     stashLabel: {
         color: CyberpunkTheme.textDim,

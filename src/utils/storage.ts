@@ -4,11 +4,14 @@ const KEYS = {
     QUIT_DATE: '@respire_quit_date',
     MONEY_SAVED: '@respire_money_saved',
     CIGS_PER_DAY: '@respire_cigs_per_day',
-    CREDITS_PER_CIG: '@respire_credits_per_cig', // Renamed
+    CREDITS_PER_CIG: '@respire_credits_per_cig',
     LOGS: '@respire_logs',
     BOUNTIES: '@respire_bounties',
 };
 
+/**
+ * Log entry for panic button presses or relapses.
+ */
 export interface LogEntry {
     id: string;
     timestamp: number;
@@ -16,6 +19,9 @@ export interface LogEntry {
     type: 'panic' | 'relapse';
 }
 
+/**
+ * User-defined rewards.
+ */
 export interface Bounty {
     id: string;
     title: string;
@@ -24,12 +30,22 @@ export interface Bounty {
     dateAdded: number;
 }
 
+/**
+ * Application settings and calibration data.
+ */
 export interface UserSettings {
     cigsPerDay: number;
-    creditsPerCig: number; // Renamed
+    creditsPerCig: number;
 }
 
+/**
+ * Persistence layer handling all AsyncStorage operations.
+ */
 export const Storage = {
+    /**
+     * Saves the timestamp when the user started their quit journey.
+     * @param date Timestamp in milliseconds
+     */
     async saveQuitDate(date: number) {
         try {
             await AsyncStorage.setItem(KEYS.QUIT_DATE, date.toString());
@@ -38,6 +54,10 @@ export const Storage = {
         }
     },
 
+    /**
+     * Retrieves the quit date timestamp.
+     * @returns Timestamp in milliseconds or null if not set.
+     */
     async getQuitDate(): Promise<number | null> {
         try {
             const value = await AsyncStorage.getItem(KEYS.QUIT_DATE);
@@ -48,6 +68,9 @@ export const Storage = {
         }
     },
 
+    /**
+     * Clears the quit date, effectively resetting progress.
+     */
     async clearQuitDate() {
         try {
             await AsyncStorage.removeItem(KEYS.QUIT_DATE);
@@ -56,6 +79,10 @@ export const Storage = {
         }
     },
 
+    /**
+     * Saves user configuration.
+     * @param settings UserSettings object
+     */
     async saveSettings(settings: UserSettings) {
         try {
             await AsyncStorage.multiSet([
@@ -67,6 +94,10 @@ export const Storage = {
         }
     },
 
+    /**
+     * Retrieves user configuration.
+     * @returns UserSettings object with defaults if not found.
+     */
     async getSettings(): Promise<UserSettings | null> {
         try {
             const values = await AsyncStorage.multiGet([KEYS.CIGS_PER_DAY, KEYS.CREDITS_PER_CIG]);
@@ -83,6 +114,10 @@ export const Storage = {
         }
     },
 
+    /**
+     * Adds a new log entry.
+     * @param log LogEntry object
+     */
     async addLog(log: LogEntry) {
         try {
             const existingLogs = await this.getLogs();
@@ -93,6 +128,10 @@ export const Storage = {
         }
     },
 
+    /**
+     * Retrieves all system logs.
+     * @returns Array of LogEntry
+     */
     async getLogs(): Promise<LogEntry[]> {
         try {
             const jsonValue = await AsyncStorage.getItem(KEYS.LOGS);
@@ -103,6 +142,10 @@ export const Storage = {
         }
     },
 
+    /**
+     * Overwrites the bounties list.
+     * @param bounties Array of Bounty objects
+     */
     async saveBounties(bounties: Bounty[]) {
         try {
             await AsyncStorage.setItem(KEYS.BOUNTIES, JSON.stringify(bounties));
@@ -111,6 +154,10 @@ export const Storage = {
         }
     },
 
+    /**
+     * Retrieves all user bounties.
+     * @returns Array of Bounty objects
+     */
     async getBounties(): Promise<Bounty[]> {
         try {
             const jsonValue = await AsyncStorage.getItem(KEYS.BOUNTIES);
@@ -121,6 +168,10 @@ export const Storage = {
         }
     },
 
+    /**
+     * Adds a new bounty reward.
+     * @param bounty Bounty object
+     */
     async addBounty(bounty: Bounty) {
         try {
             const bounties = await this.getBounties();

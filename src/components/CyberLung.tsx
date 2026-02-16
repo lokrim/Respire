@@ -10,6 +10,11 @@ interface CyberLungProps {
     daysSober: number;
 }
 
+/**
+ * CyberLung Visualizer
+ * An animated component that changes state based on the user's sobriety streak.
+ * It pulses to mimic breathing and updates icon/color to reflect healing.
+ */
 export default function CyberLung({ daysSober }: CyberLungProps) {
     const pulse = useSharedValue(1);
 

@@ -3,7 +3,6 @@ import { withLayoutContext } from 'expo-router';
 import { Activity, CircleDollarSign, LayoutDashboard, Settings } from 'lucide-react-native';
 import React from 'react';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import Colors from '@/src/constants/Colors';
 
 const { Navigator } = createMaterialTopTabNavigator();
@@ -11,20 +10,18 @@ const { Navigator } = createMaterialTopTabNavigator();
 export const MaterialTopTabs = withLayoutContext(Navigator);
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <MaterialTopTabs
       tabBarPosition="bottom"
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: Colors.dark.tint,
         tabBarStyle: {
-          backgroundColor: Colors[colorScheme ?? 'light'].background,
+          backgroundColor: Colors.dark.background,
           borderTopWidth: 1,
-          borderTopColor: Colors[colorScheme ?? 'light'].border || '#333',
+          borderTopColor: Colors.dark.border || '#333',
         },
         tabBarIndicatorStyle: {
-          backgroundColor: Colors[colorScheme ?? 'light'].tint,
+          backgroundColor: Colors.dark.tint,
           height: 3,
           top: 0,
         },
