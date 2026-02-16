@@ -4,7 +4,7 @@ const KEYS = {
     QUIT_DATE: '@respire_quit_date',
     MONEY_SAVED: '@respire_money_saved',
     CIGS_PER_DAY: '@respire_cigs_per_day',
-    COST_PER_PACK: '@respire_cost_per_pack',
+    CREDITS_PER_CIG: '@respire_credits_per_cig', // Renamed
     LOGS: '@respire_logs',
     BOUNTIES: '@respire_bounties',
 };
@@ -26,7 +26,7 @@ export interface Bounty {
 
 export interface UserSettings {
     cigsPerDay: number;
-    costPerPack: number;
+    creditsPerCig: number; // Renamed
 }
 
 export const Storage = {
@@ -60,7 +60,7 @@ export const Storage = {
         try {
             await AsyncStorage.multiSet([
                 [KEYS.CIGS_PER_DAY, settings.cigsPerDay.toString()],
-                [KEYS.COST_PER_PACK, settings.costPerPack.toString()],
+                [KEYS.CREDITS_PER_CIG, settings.creditsPerCig.toString()],
             ]);
         } catch (e) {
             console.error('Failed to save settings', e);
@@ -69,13 +69,13 @@ export const Storage = {
 
     async getSettings(): Promise<UserSettings | null> {
         try {
-            const values = await AsyncStorage.multiGet([KEYS.CIGS_PER_DAY, KEYS.COST_PER_PACK]);
+            const values = await AsyncStorage.multiGet([KEYS.CIGS_PER_DAY, KEYS.CREDITS_PER_CIG]);
             const cigsPerDay = values[0][1] ? parseFloat(values[0][1]) : 10; // Default 10
-            const costPerPack = values[1][1] ? parseFloat(values[1][1]) : 15; // Default 15
+            const creditsPerCig = values[1][1] ? parseFloat(values[1][1]) : 1.0; // Default 1.0
 
             return {
                 cigsPerDay,
-                costPerPack
+                creditsPerCig
             };
         } catch (e) {
             console.error('Failed to get settings', e);

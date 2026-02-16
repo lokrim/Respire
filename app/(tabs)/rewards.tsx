@@ -9,7 +9,7 @@ import { Bounty, Storage } from '@/src/utils/storage';
 
 export default function RewardsScreen() {
     const [bounties, setBounties] = useState<Bounty[]>([]);
-    const [moneySaved, setMoneySaved] = useState(0);
+    const [creditsEarned, setCreditsEarned] = useState(0);
     const [spendable, setSpendable] = useState(0);
     const [refreshing, setRefreshing] = useState(false);
 
@@ -30,17 +30,17 @@ export default function RewardsScreen() {
             const now = Date.now();
             const diff = now - quitDate;
             const days = diff / (1000 * 60 * 60 * 24);
-            const costPerCig = settings.costPerPack / 20;
-            const totalSaved = days * settings.cigsPerDay * costPerCig;
+            // Credit calculation
+            const totalCredits = Math.floor(days * settings.cigsPerDay * settings.creditsPerCig);
 
             const spent = savedBounties
                 .filter(b => b.redeemed)
                 .reduce((sum, b) => sum + b.cost, 0);
 
-            setMoneySaved(totalSaved);
-            setSpendable(totalSaved - spent);
+            setCreditsEarned(totalCredits);
+            setSpendable(totalCredits - spent);
         } else {
-            setMoneySaved(0);
+            setCreditsEarned(0);
             setSpendable(0);
         }
 
@@ -97,7 +97,7 @@ export default function RewardsScreen() {
             <View style={[styles.bountyCard, item.redeemed && styles.bountyCardRedeemed]}>
                 <View style={styles.bountyInfo}>
                     <Text style={[styles.bountyTitle, item.redeemed && styles.textDim]}>{item.title}</Text>
-                    <Text style={[styles.bountyCost, item.redeemed && styles.textDim]}>${item.cost.toFixed(2)}</Text>
+                    <Text style={[styles.bountyCost, item.redeemed && styles.textDim]}>C {item.cost}</Text>
                 </View>
 
                 <View style={styles.bountyActions}>
@@ -118,11 +118,9 @@ export default function RewardsScreen() {
                         )
                     )}
 
-                    {!item.redeemed && (
-                        <TouchableOpacity style={styles.deleteButton} onPress={() => handleDelete(item.id)}>
-                            <Trash2 size={20} color={CyberpunkTheme.error} />
-                        </TouchableOpacity>
-                    )}
+                    <TouchableOpacity style={styles.deleteButton} onPress={() => handleDelete(item.id)}>
+                        <Trash2 size={20} color={CyberpunkTheme.error} />
+                    </TouchableOpacity>
                 </View>
             </View>
         );
@@ -133,9 +131,9 @@ export default function RewardsScreen() {
             <View style={styles.header}>
                 <Text style={styles.headerText}>YAKUZA STASH</Text>
                 <View style={styles.stashCard}>
-                    <Text style={styles.stashLabel}>AVAILABLE FUNDS</Text>
-                    <Text style={styles.stashValue}>${spendable.toFixed(2)}</Text>
-                    <Text style={styles.totalLabel}>Total Saved: ${moneySaved.toFixed(2)}</Text>
+                    <Text style={styles.stashLabel}>AVAILABLE CREDITS</Text>
+                    <Text style={styles.stashValue}>C {spendable}</Text>
+                    <Text style={styles.totalLabel}>Total Earned: C {creditsEarned}</Text>
                 </View>
             </View>
 
@@ -161,7 +159,7 @@ export default function RewardsScreen() {
 
                         <TextInput
                             style={styles.input}
-                            placeholder="Target Name (e.g. Elden Ring)"
+                            placeholder="Target Name (e.g. Cyberware)"
                             placeholderTextColor={CyberpunkTheme.textDim}
                             value={newTitle}
                             onChangeText={setNewTitle}
@@ -169,7 +167,7 @@ export default function RewardsScreen() {
 
                         <TextInput
                             style={styles.input}
-                            placeholder="Cost ($)"
+                            placeholder="Cost (C)"
                             placeholderTextColor={CyberpunkTheme.textDim}
                             value={newCost}
                             onChangeText={setNewCost}
